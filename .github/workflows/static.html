@@ -1,0 +1,59 @@
+<div style="font-family: sans-serif; max-width: 500px; margin: auto;">
+  <h2>Scratch Dashboard Login</h2>
+
+  <input id="username" placeholder="Enter Scratch username" />
+  <button onclick="startVerification()">Start</button>
+
+  <div id="step2" style="display:none; margin-top:20px;">
+    <p>Put this code in your Scratch bio:</p>
+    <h3 id="code"></h3>
+    <button onclick="checkVerification()">I've added it</button>
+    <p id="status"></p>
+  </div>
+
+  <div id="dashboard" style="display:none; margin-top:20px;">
+    <h2>✅ Verified!</h2>
+    <p id="welcome"></p>
+  </div>
+</div>
+
+<script>
+let currentCode = "";
+let currentUser = "";
+
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function startVerification() {
+  const username = document.getElementById("username").value.trim();
+  if (!username) return alert("Enter username");
+
+  currentUser = username;
+  currentCode = generateCode();
+
+  document.getElementById("code").innerText = currentCode;
+  document.getElementById("step2").style.display = "block";
+}
+
+async function checkVerification() {
+  const status = document.getElementById("status");
+  status.innerText = "Checking...";
+
+  try {
+    const res = await fetch(`https://api.scratch.mit.edu/users/${currentUser}`);
+    const data = await res.json();
+
+    if (data.profile && data.profile.bio.includes(currentCode)) {
+      document.getElementById("dashboard").style.display = "block";
+      document.getElementById("step2").style.display = "none";
+      document.getElementById("welcome").innerText =
+        "Welcome, " + currentUser + "!";
+    } else {
+      status.innerText = "Code not found yet. Make sure it's saved!";
+    }
+  } catch (err) {
+    status.innerText = "Error fetching profile.";
+  }
+}
+</script>
