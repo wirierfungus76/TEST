@@ -41,8 +41,17 @@ async function checkVerification() {
   status.innerText = "Checking...";
 
   try {
-    const res = await fetch(`https://api.scratch.mit.edu/users/${currentUser}`);
-    const data = await res.json();
+    const proxy = "https://corsproxy.io/?";
+    const target = `https://api.scratch.mit.edu/users/${currentUser}`;
+
+    const response = await fetch(proxy + encodeURIComponent(target));
+
+    if (!response.ok) {
+      status.innerText = "API error: " + response.status;
+      return;
+    }
+
+    const data = await response.json();
 
     if (data.profile && data.profile.bio.includes(currentCode)) {
       document.getElementById("dashboard").style.display = "block";
@@ -50,10 +59,11 @@ async function checkVerification() {
       document.getElementById("welcome").innerText =
         "Welcome, " + currentUser + "!";
     } else {
-      status.innerText = "Code not found yet. Make sure it's saved!";
+      status.innerText = "Code not found in bio yet. Make sure you saved!";
     }
   } catch (err) {
-    status.innerText = "Error fetching profile.";
+    console.error(err);
+    status.innerText = "Still blocked. Proxy may be rate-limited.";
   }
 }
 </script>
